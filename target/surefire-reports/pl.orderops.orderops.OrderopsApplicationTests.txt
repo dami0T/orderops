@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: pl.orderops.orderops.OrderopsApplicationTests
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 7.587 s -- in pl.orderops.orderops.OrderopsApplicationTests
