@@ -11,7 +11,7 @@ public class DataInitializer {
 
   private final TenantRepository tenantRepository;
   private final RuleRepository ruleRepository;
-  private final ActionRepository actionRepository;
+ // private final ActionRepository actionRepository;
 
 //  @Bean
 //  CommandLineRunner initData() {

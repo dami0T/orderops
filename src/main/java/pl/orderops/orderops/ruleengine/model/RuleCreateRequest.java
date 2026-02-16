@@ -9,7 +9,8 @@ import pl.orderops.orderops.action.model.ActionCreateRequest;
 public class RuleCreateRequest {
 
   private Long tenantId;
-  private String eventName;
+  private String eventType;
+  private Map<String, Object> trigger;
   private Map<String, Object> condition;
   private List<ActionCreateRequest> actions;
 }

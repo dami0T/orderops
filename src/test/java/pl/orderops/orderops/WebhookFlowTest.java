@@ -10,7 +10,7 @@ import pl.orderops.orderops.ruleengine.model.Rule;
 import pl.orderops.orderops.ruleengine.model.RuleRepository;
 import pl.orderops.orderops.model.tenant.Tenant;
 import pl.orderops.orderops.model.tenant.TenantRepository;
-import pl.orderops.orderops.webhook.WebhookService;
+import pl.orderops.orderops.service.webhook.WebhookService;
 
 
 @SpringBootTest
@@ -24,8 +24,6 @@ class WebhookFlowTest {
   @Autowired
   private RuleRepository ruleRepository;
 
-  @Autowired
-  private ActionRepository actionRepository;
 
   @Autowired
   private WebhookService webhookService;
@@ -37,7 +35,7 @@ class WebhookFlowTest {
 
   private Tenant tenant;
   private Rule rule;
-  private Action action;
+
 
 //  @BeforeEach
 //  void setup() throws Exception {

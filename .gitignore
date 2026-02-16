@@ -1,0 +1,3 @@
+# Ignoruj folder target i wszystkie jar-y
+target/
+*.jar

@@ -11,11 +11,13 @@ public interface ActionExecutionRepository extends JpaRepository<ActionExecution
 
 
   // Pobiera akcje PENDING lub RETRY do wykonania
-  @Query(value = """
-        SELECT * FROM action_execution
-        WHERE (status = 'PENDING' OR status = 'RETRY')
-          AND next_retry_at <= :now
-        FOR UPDATE SKIP LOCKED
-        """, nativeQuery = true)
-  List<ActionExecution> findPendingOrRetry(@Param("now") OffsetDateTime now);
+  @Query("""
+SELECT e FROM ActionExecution e
+WHERE e.status IN ('PENDING','RETRY')
+AND e.nextRetryAt <= :now
+ORDER BY e.createdAt
+""")
+  List<ActionExecution> findPendingOrRetry(OffsetDateTime now);
+
+  List<ActionExecution> findByEventId(Long eventId);
 }

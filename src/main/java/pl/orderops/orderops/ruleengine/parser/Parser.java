@@ -2,10 +2,10 @@ package pl.orderops.orderops.ruleengine.parser;
 
 import java.util.List;
 import pl.orderops.orderops.ruleengine.lexer.Token;
-import pl.orderops.orderops.ruleengine.lexer.TokenType;
 import pl.orderops.orderops.ruleengine.expression.ComparisonExpression;
 import pl.orderops.orderops.ruleengine.expression.Expression;
 import pl.orderops.orderops.ruleengine.expression.LogicalExpression;
+import pl.orderops.orderops.ruleengine.lexer.TokenType;
 
 public class Parser {
 

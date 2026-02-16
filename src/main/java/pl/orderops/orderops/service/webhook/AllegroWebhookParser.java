@@ -25,7 +25,7 @@ public class AllegroWebhookParser implements WebhookProviderParser {
       return CanonicalWebhookEvent.builder()
           .provider("allegro")
           .externalEventId(node.get("id").asText())
-          .eventName(node.get("type").asText())
+          .eventType(node.get("type").asText())
           .payload(payload)
           .build();
 

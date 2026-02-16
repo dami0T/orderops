@@ -6,12 +6,12 @@ import lombok.Builder;
 import lombok.Data;
 import pl.orderops.orderops.ruleengine.model.ActionDetailsResponse;
 
-@Data
-@Builder
-public class RuleDetailsResponse {
-  private Long id;
-  private String eventName;
-  private boolean active;
-  private Map<String, Object> condition;
-  private List<ActionDetailsResponse> actions;
-}
+
+public record RuleDetailsResponse(
+    Long id,
+    String name,
+    boolean active,
+    Map<String, Object> trigger,
+    Map<String, Object> conditions,
+    List<Map<String, Object>> actions
+) {}

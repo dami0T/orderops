@@ -9,6 +9,6 @@ public class CanonicalWebhookEvent {
 
   private String provider;          // allegro / stripe / shopify
   private String externalEventId;   // id nadawcy
-  private String eventName;         // ORDER_CREATED / invoice.paid
+  private String eventType;         // ORDER_CREATED / invoice.paid
   private String payload;           // raw payload
 }
