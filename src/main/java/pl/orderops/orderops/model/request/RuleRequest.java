@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class RuleRequest {
   private Long tenantId;        // do którego tenant przypisana reguła
-  private String eventName;     // np. ORDER_CREATED
+  private String eventType;     // np. ORDER_CREATED
   private boolean active = true;
   private String conditionJson; // JSON z warunkami AND/OR
 }

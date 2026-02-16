@@ -7,9 +7,10 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import org.springframework.data.annotation.Id;
 import pl.orderops.orderops.action.model.ActionType;
 
 @Entity
@@ -17,15 +18,16 @@ import pl.orderops.orderops.action.model.ActionType;
 public class RuleAction {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.UUID)
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
   @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "rule_revision_id")
   private RuleRevision revision;
 
   @Enumerated(EnumType.STRING)
   private ActionType type;
 
-  @Column(columnDefinition = "jsonb")
+  @Column(columnDefinition = "TEXT")
   private String configJson;
 }

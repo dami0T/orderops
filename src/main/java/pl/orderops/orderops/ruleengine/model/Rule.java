@@ -19,14 +19,19 @@ public class Rule {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @ManyToOne(optional = false)
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @JoinColumn(name = "tenant_id")
   private Tenant tenant;
 
   private String name;
 
+  // 🔴 NA JAKI EVENT REAGUJE REGUŁA
+  private String eventType;
+
   private boolean active = true;
 
   // soft delete
+  @Column(name = "deleted")
   private boolean deleted = false;
   private OffsetDateTime deletedAt;
 }

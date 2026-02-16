@@ -10,7 +10,7 @@ import pl.orderops.orderops.ruleengine.model.RuleRepository;
 @RequiredArgsConstructor
 public class ActionController {
 
-  private final ActionRepository actionRepository;
+ // private final ActionRepository actionRepository;
   private final RuleRepository ruleRepository;
 
 //  @GetMapping

@@ -11,15 +11,14 @@ public interface RuleRevisionRepository extends JpaRepository<RuleRevision, Long
 
   Optional<RuleRevision> findTopByRuleIdOrderByVersionDesc(Long ruleId);
 
-  List<RuleRevision> findByActiveTrue();
-
   @Query("""
-        select r
-        from RuleRevision r
-        join r.rule rule
-        where r.active = true
-        and rule.active = true
-        and rule.deleted = false
-    """)
+      select rev
+      from RuleRevision rev
+      join fetch rev.rule r
+      join fetch r.tenant t
+      where rev.active = true
+        and r.active = true
+        and r.deleted = false
+  """)
   List<RuleRevision> findAllExecutable();
 }

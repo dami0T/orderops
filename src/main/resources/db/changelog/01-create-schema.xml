@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <!-- Tenant Table -->
+    <changeSet id="01" author="system" context="base">
+        <createTable tableName="tenant">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints unique="true" nullable="false"/>
+            </column>
+            <column name="api_key" type="varchar(255)">
+                <constraints unique="true" nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp"/>
+        </createTable>
+        
+        <sql>
+            COMMENT ON TABLE tenant IS 'Tenant information table';
+            COMMENT ON COLUMN tenant.name IS 'Unique tenant name';
+            COMMENT ON COLUMN tenant.api_key IS 'Unique API key for tenant';
+            COMMENT ON COLUMN tenant.created_at IS 'Tenant creation timestamp';
+        </sql>
+    </changeSet>
+
+    <!-- Rule Table -->
+    <changeSet id="02" author="system" context="base">
+        <createTable tableName="rule">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="tenant_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="varchar(255)"/>
+            <column name="event_type" type="varchar(255)"/>
+            <column name="active" type="boolean" defaultValueBoolean="true"/>
+            <column name="deleted" type="boolean" defaultValueBoolean="false"/>
+            <column name="deleted_at" type="timestamp"/>
+        </createTable>
+        
+        <addForeignKeyConstraint 
+            baseTableName="rule" 
+            baseColumnNames="tenant_id"
+            referencedTableName="tenant" 
+            referencedColumnNames="id"
+            constraintName="fk_rule_tenant"
+            onDelete="CASCADE"/>
+        
+        <createIndex tableName="rule" indexName="idx_rule_lookup" unique="false">
+            <column name="tenant_id"/>
+            <column name="active"/>
+            <column name="deleted"/>
+        </createIndex>
+        
+        <sql>
+            COMMENT ON TABLE rule IS 'Business rules table';
+            COMMENT ON COLUMN rule.name IS 'Rule name';
+            COMMENT ON COLUMN rule.event_type IS 'Event type that this rule responds to';
+            COMMENT ON COLUMN rule.active IS 'Whether rule is active';
+            COMMENT ON COLUMN rule.deleted IS 'Soft delete flag';
+            COMMENT ON COLUMN rule.deleted_at IS 'Soft delete timestamp';
+        </sql>
+    </changeSet>
+
+    <!-- Webhook Event Table -->
+    <changeSet id="03" author="system" context="base">
+        <createTable tableName="webhook_event">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="tenant_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="event_type" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="source" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="external_id" type="varchar(255)"/>
+            <column name="idempotency_key" type="varchar(255)">
+                <constraints unique="true"/>
+            </column>
+            <column name="payload_json" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="amount" type="decimal(19,2)"/>
+            <column name="currency" type="varchar(10)"/>
+            <column name="country" type="varchar(10)"/>
+            <column name="status" type="varchar(20)"/>
+            <column name="received_at" type="timestamp"/>
+            <column name="processed_at" type="timestamp"/>
+        </createTable>
+        
+        <addForeignKeyConstraint 
+            baseTableName="webhook_event" 
+            baseColumnNames="tenant_id"
+            referencedTableName="tenant" 
+            referencedColumnNames="id"
+            constraintName="fk_webhook_event_tenant"
+            onDelete="CASCADE"/>
+        
+        <createIndex tableName="webhook_event" indexName="idx_webhook_lookup" unique="false">
+            <column name="tenant_id"/>
+            <column name="event_type"/>
+            <column name="status"/>
+        </createIndex>
+        
+        <sql>
+            COMMENT ON TABLE webhook_event IS 'Incoming webhook events table';
+            COMMENT ON COLUMN webhook_event.event_type IS 'Type of event (e.g., invoice.created)';
+            COMMENT ON COLUMN webhook_event.source IS 'Source system identifier';
+            COMMENT ON COLUMN webhook_event.external_id IS 'External object identifier';
+            COMMENT ON COLUMN webhook_event.idempotency_key IS 'Idempotency key for duplicate prevention';
+            COMMENT ON COLUMN webhook_event.payload_json IS 'Raw JSON payload';
+            COMMENT ON COLUMN webhook_event.amount IS 'Event amount for filtering';
+            COMMENT ON COLUMN webhook_event.currency IS 'Currency code';
+            COMMENT ON COLUMN webhook_event.country IS 'Country code';
+            COMMENT ON COLUMN webhook_event.status IS 'Processing status (RECEIVED, PROCESSING, PROCESSED, FAILED)';
+            COMMENT ON COLUMN webhook_event.received_at IS 'Event reception timestamp';
+            COMMENT ON COLUMN webhook_event.processed_at IS 'Event processing completion timestamp';
+        </sql>
+    </changeSet>
+
+    <!-- Rule Revision Table -->
+    <changeSet id="04" author="system" context="base">
+        <createTable tableName="rule_revision">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="rule_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="version" type="int"/>
+            <column name="active" type="boolean"/>
+            <column name="trigger_json" type="text"/>
+            <column name="conditions_json" type="text"/>
+            <column name="actions_json" type="text"/>
+            <column name="created_at" type="timestamp"/>
+        </createTable>
+        
+        <addForeignKeyConstraint 
+            baseTableName="rule_revision" 
+            baseColumnNames="rule_id"
+            referencedTableName="rule" 
+            referencedColumnNames="id"
+            constraintName="fk_rule_revision_rule"
+            onDelete="CASCADE"/>
+        
+        <createIndex tableName="rule_revision" indexName="idx_rule_revision_active" unique="false">
+            <column name="rule_id"/>
+            <column name="active"/>
+        </createIndex>
+        
+        <sql>
+            COMMENT ON TABLE rule_revision IS 'Rule version history table';
+            COMMENT ON COLUMN rule_revision.version IS 'Version number';
+            COMMENT ON COLUMN rule_revision.active IS 'Whether this version is currently active';
+            COMMENT ON COLUMN rule_revision.trigger_json IS 'Trigger configuration JSON';
+            COMMENT ON COLUMN rule_revision.conditions_json IS 'Conditions JSON';
+            COMMENT ON COLUMN rule_revision.actions_json IS 'Actions JSON';
+            COMMENT ON COLUMN rule_revision.created_at IS 'Version creation timestamp';
+        </sql>
+    </changeSet>
+
+    <!-- Rule Action Table -->
+    <changeSet id="05" author="system" context="base">
+        <createTable tableName="rule_actions">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="rule_revision_id" type="bigint"/>
+            <column name="type" type="varchar(50)"/>
+            <column name="config_json" type="text"/>
+        </createTable>
+        
+        <addForeignKeyConstraint 
+            baseTableName="rule_actions" 
+            baseColumnNames="rule_revision_id"
+            referencedTableName="rule_revision" 
+            referencedColumnNames="id"
+            constraintName="fk_rule_action_rule_revision"
+            onDelete="CASCADE"/>
+        
+        <sql>
+            COMMENT ON TABLE rule_actions IS 'Rule actions configuration table';
+            COMMENT ON COLUMN rule_actions.type IS 'Action type (HTTP, etc.)';
+            COMMENT ON COLUMN rule_actions.config_json IS 'Action configuration JSON';
+        </sql>
+    </changeSet>
+
+    <!-- Action Execution Table -->
+    <changeSet id="06" author="system" context="base">
+        <createTable tableName="action_execution">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="rule_revision_id" type="bigint"/>
+            <column name="action_index" type="int"/>
+            <column name="event_id" type="bigint"/>
+            <column name="status" type="varchar(20)"/>
+            <column name="attempts" type="int" defaultValueNumeric="0"/>
+            <column name="next_retry_at" type="timestamp"/>
+            <column name="last_error" type="text"/>
+            <column name="created_at" type="timestamp"/>
+        </createTable>
+        
+        <addForeignKeyConstraint 
+            baseTableName="action_execution" 
+            baseColumnNames="rule_revision_id"
+            referencedTableName="rule_revision" 
+            referencedColumnNames="id"
+            constraintName="fk_action_execution_rule_revision"
+            onDelete="CASCADE"/>
+            
+        <addForeignKeyConstraint 
+            baseTableName="action_execution" 
+            baseColumnNames="event_id"
+            referencedTableName="webhook_event" 
+            referencedColumnNames="id"
+            constraintName="fk_action_execution_webhook_event"
+            onDelete="CASCADE"/>
+        
+        <createIndex tableName="action_execution" indexName="idx_action_execution_retry" unique="false">
+            <column name="status"/>
+            <column name="next_retry_at"/>
+        </createIndex>
+        
+        <sql>
+            COMMENT ON TABLE action_execution IS 'Action execution tracking table';
+            COMMENT ON COLUMN action_execution.action_index IS 'Position of action in actions array';
+            COMMENT ON COLUMN action_execution.status IS 'Execution status (PENDING, SUCCESS, RETRY, FAILED)';
+            COMMENT ON COLUMN action_execution.attempts IS 'Number of execution attempts';
+            COMMENT ON COLUMN action_execution.next_retry_at IS 'Next retry timestamp';
+            COMMENT ON COLUMN action_execution.last_error IS 'Last error message';
+            COMMENT ON COLUMN action_execution.created_at IS 'Execution creation timestamp';
+        </sql>
+    </changeSet>
+
+    <!-- Processed Event Table -->
+    <changeSet id="07" author="system" context="base">
+        <createTable tableName="processed_event">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="tenant_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="external_event_id" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="processed_at" type="timestamp"/>
+        </createTable>
+        
+        <addForeignKeyConstraint 
+            baseTableName="processed_event" 
+            baseColumnNames="tenant_id"
+            referencedTableName="tenant" 
+            referencedColumnNames="id"
+            constraintName="fk_processed_event_tenant"
+            onDelete="CASCADE"/>
+        
+        <addUniqueConstraint 
+            tableName="processed_event"
+            columnNames="tenant_id, external_event_id"
+            constraintName="uk_processed_event_tenant_external"/>
+        
+        <sql>
+            COMMENT ON TABLE processed_event IS 'Processed events tracking table';
+            COMMENT ON COLUMN processed_event.external_event_id IS 'External event identifier';
+            COMMENT ON COLUMN processed_event.processed_at IS 'Processing completion timestamp';
+        </sql>
+    </changeSet>
+
+    <!-- Outbox Event Table -->
+    <changeSet id="08" author="system" context="base">
+        <createTable tableName="outbox_event">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="aggregate_type" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="aggregate_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="event_type" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="payload_json" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="processed" type="boolean" defaultValueBoolean="false"/>
+            <column name="processed_at" type="timestamp"/>
+            <column name="retry_count" type="int" defaultValueNumeric="0"/>
+            <column name="next_retry_at" type="timestamp"/>
+            <column name="last_error" type="text"/>
+        </createTable>
+        
+        <createIndex tableName="outbox_event" indexName="idx_outbox_unprocessed" unique="false">
+            <column name="processed"/>
+            <column name="created_at"/>
+        </createIndex>
+        
+        <createIndex tableName="outbox_event" indexName="idx_outbox_retry" unique="false">
+            <column name="processed"/>
+            <column name="next_retry_at"/>
+        </createIndex>
+        
+        <sql>
+            COMMENT ON TABLE outbox_event IS 'Outbox table for reliable event publishing';
+            COMMENT ON COLUMN outbox_event.aggregate_type IS 'Type of aggregate (e.g., WebhookEvent, Action)';
+            COMMENT ON COLUMN outbox_event.aggregate_id IS 'ID of the aggregate';
+            COMMENT ON COLUMN outbox_event.event_type IS 'Type of event';
+            COMMENT ON COLUMN outbox_event.payload_json IS 'Event payload JSON';
+            COMMENT ON COLUMN outbox_event.created_at IS 'Event creation timestamp';
+            COMMENT ON COLUMN outbox_event.processed IS 'Whether event has been published to Redis';
+            COMMENT ON COLUMN outbox_event.processed_at IS 'Processing completion timestamp';
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
